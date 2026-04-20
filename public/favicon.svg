@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Navy background -->
+  <circle cx="16" cy="16" r="16" fill="#0F1E3D"/>
+  <!-- Gold border ring -->
+  <circle cx="16" cy="16" r="14.5" fill="none" stroke="#C9A961" stroke-width="1.2"/>
+  <!-- Left star (5-pointed, cx=7.5 cy=16 R=2.5 r=1) -->
+  <polygon fill="#C9A961" points="7.5,13.5 8.09,15.19 9.88,15.23 8.45,16.31 8.97,18.02 7.5,17 6.03,18.02 6.55,16.31 5.12,15.23 6.91,15.19"/>
+  <!-- Right star (5-pointed, cx=24.5 cy=16 R=2.5 r=1) -->
+  <polygon fill="#C9A961" points="24.5,13.5 25.09,15.19 26.88,15.23 25.45,16.31 25.97,18.02 24.5,17 23.03,18.02 23.55,16.31 22.12,15.23 23.91,15.19"/>
+  <!-- Gold S -->
+  <text x="16" y="21.5" text-anchor="middle" font-family="Georgia,'Times New Roman',serif" font-size="15" font-weight="bold" fill="#C9A961">S</text>
+</svg>
