@@ -1,8 +1,7 @@
 import Image from "next/image";
 
-// TODO: swap to tcp.calcshore.ai / mixdesign.calcshore.ai once custom domains are configured
-const TCP_URL = "https://calcshore.vercel.app";
-const MIX_DESIGN_URL = "https://calcshore-mixdesign.vercel.app";
+const TCP_URL = "https://tcp.calcshore.ai";
+const MIX_DESIGN_URL = "https://mixdesign.calcshore.ai";
 
 export default function Home() {
   return (
