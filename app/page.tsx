@@ -1,99 +1,84 @@
-import Image from "next/image";
+// TODO: swap to tcp.calcshore.ai / mixdesign.calcshore.ai once custom domains are configured
+const TCP_URL = "https://calcshore.vercel.app";
+const MIX_DESIGN_URL = "https://calcshore-mixdesign.vercel.app";
+
+// Strata + shore mark: horizontal layered bands (geological/concrete strata)
+// bisected by a vertical calculation axis — the shore where material meets math.
+function LogoMark({ size = 48 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 48 48"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="CalcShore logo mark"
+    >
+      <title>CalcShore</title>
+      <rect width="48" height="48" rx="6" fill="#0F1E3D" />
+      <rect x="6" y="10" width="36" height="5" rx="1" fill="#E8EEF5" opacity="0.15" />
+      <rect x="6" y="17" width="36" height="5" rx="1" fill="#C9A961" opacity="0.35" />
+      <rect x="6" y="24" width="36" height="5" rx="1" fill="#E8EEF5" opacity="0.25" />
+      <rect x="6" y="31" width="36" height="5" rx="1" fill="#C9A961" opacity="0.15" />
+      <rect x="22.5" y="6" width="3" height="36" rx="1.5" fill="#C9A961" />
+      <path d="M6 6 L6 14 M6 6 L14 6" stroke="#E8EEF5" strokeWidth="2" strokeLinecap="round" />
+      <path d="M42 6 L42 14 M42 6 L34 6" stroke="#E8EEF5" strokeWidth="2" strokeLinecap="round" />
+      <path d="M6 42 L6 34 M6 42 L14 42" stroke="#E8EEF5" strokeWidth="2" strokeLinecap="round" />
+      <path d="M42 42 L42 34 M42 42 L34 42" stroke="#E8EEF5" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen bg-ice flex flex-col">
+      <main className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="flex flex-col items-center gap-8 w-full max-w-xl">
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+          <div className="flex flex-col items-center gap-4">
+            <LogoMark size={72} />
+            <h1 className="font-serif text-3xl sm:text-4xl font-normal tracking-tight text-navy">
+              CalcShore
+            </h1>
+          </div>
+
+          <p className="text-navy/70 text-base sm:text-lg text-center font-sans leading-relaxed">
+            Concrete compliance documentation, automated.
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-4 w-full">
+            <a
+              href={TCP_URL}
+              className="flex-1 flex flex-col items-center justify-center gap-1 border-2 border-navy rounded-lg px-6 py-5 bg-white text-navy hover:bg-navy hover:text-ice transition-colors duration-150 group"
+            >
+              <span className="font-serif text-lg font-normal">CalcShore TCP</span>
+              <span className="text-sm font-sans text-navy/60 group-hover:text-ice/70 transition-colors duration-150">
+                Thermal Control Plans
+              </span>
+            </a>
+
+            <a
+              href={MIX_DESIGN_URL}
+              className="flex-1 flex flex-col items-center justify-center gap-1 border-2 border-navy rounded-lg px-6 py-5 bg-white text-navy hover:bg-navy hover:text-ice transition-colors duration-150 group"
+            >
+              <span className="font-serif text-lg font-normal">CalcShore Mix Design</span>
+              <span className="text-sm font-sans text-navy/60 group-hover:text-ice/70 transition-colors duration-150">
+                Mix Design Submittals
+              </span>
+            </a>
+          </div>
+
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
+
+      <footer className="flex items-center justify-between px-6 py-4 border-t border-navy/10 text-xs font-sans text-navy/50">
+        <span>© 2026 CalcShore</span>
         <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+          href="mailto:hello@calcshore.ai"
+          className="hover:text-navy transition-colors duration-150"
         >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
+          hello@calcshore.ai
         </a>
       </footer>
     </div>

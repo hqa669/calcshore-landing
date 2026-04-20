@@ -9,8 +9,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        navy: "#0F1E3D",
+        gold: "#C9A961",
+        ice: "#E8EEF5",
+      },
+      fontFamily: {
+        serif: ["Georgia", "Cambria", "Times New Roman", "serif"],
+        sans: [
+          "system-ui",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "sans-serif",
+        ],
       },
     },
   },
