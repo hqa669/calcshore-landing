@@ -145,12 +145,21 @@ in `app/`** (verified).
 
 ---
 
-## 6. OG image TODO (STEP 7)
+## 6. OG image — RESOLVED (branch `landing-v2-og`)
 
-No 1200×630 asset exists. `app/layout.tsx` wires `openGraph.images` and
-`twitter.images` at **`/logo-horizontal.png`** as an interim. That file is
-**3001×865 (~3.47:1)**, not the 1.91:1 OG standard, so **it will letterbox** in most
-link unfurlers. TODO: produce a purpose-built 1200×630 OG image and repoint both tags.
+A purpose-built **`public/og-image.png`** now exists at exactly **1200×630** (RGB PNG,
+~83 KB). Composition: solid `#F4F4F1` (--paper) background; `public/logo-horizontal.png`
+scaled to 800×231 (LANCZOS) and centered; tagline "Thermal Control Plans for mass
+concrete" in Inter Regular ~38px, `#4A5876` (--ink-soft), centered below with a generous
+gap; the logo+tagline group is optically centered ~26px above true center.
+`app/layout.tsx` `openGraph.images` and `twitter.images` were repointed from the interim
+`/logo-horizontal.png` to `/og-image.png` (og width 1200 / height 630, alt
+"CalcSHore: Thermal Control Plans for mass concrete"); `twitter.card` remains
+`summary_large_image`. The source logo has a **real alpha channel** (transparent
+background, navy-toned anti-aliased edges — not opaque white), so compositing onto paper
+produced no white box and no edge halo (verified: 0 pixels brighter than paper around the
+logo). Inter was obtained from Google Fonts into a temp dir for rendering only; **the font
+file is not committed**.
 
 Favicon: the `<link rel="icon">` is single-sourced to `/favicon.svg` via
 `metadata.icons`. The competing icon *design* `app/icon.svg` stays removed.

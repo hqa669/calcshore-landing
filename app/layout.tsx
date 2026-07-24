@@ -45,15 +45,12 @@ export const metadata: Metadata = {
     title: "CalcSHore: Thermal Control Plans for Mass Concrete",
     description:
       "From spec sheet to stamp-ready submittal in hours. Simulation-backed thermal control plans, formatted for PE seal and DOT submittal.",
-    // TODO: interim OG image. /logo-horizontal.png is 3001×865 (~3.47:1), not the
-    // 1200×630 (1.91:1) OG standard, so it will letterbox in most unfurlers.
-    // Replace with a purpose-built 1200×630 asset.
     images: [
       {
-        url: "/logo-horizontal.png",
-        width: 3001,
-        height: 865,
-        alt: "CalcShore",
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "CalcSHore: Thermal Control Plans for mass concrete",
       },
     ],
   },
@@ -62,8 +59,12 @@ export const metadata: Metadata = {
     title: "CalcSHore: Thermal Control Plans for Mass Concrete",
     description:
       "From spec sheet to stamp-ready submittal in hours. Simulation-backed thermal control plans, formatted for PE seal and DOT submittal.",
-    // TODO: same interim OG image as above — replace with 1200×630.
-    images: ["/logo-horizontal.png"],
+    images: [
+      {
+        url: "/og-image.png",
+        alt: "CalcSHore: Thermal Control Plans for mass concrete",
+      },
+    ],
   },
 };
 
