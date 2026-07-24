@@ -6,22 +6,22 @@ const config: Config = {
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  // The ported design ships a 2,185-line stylesheet with its own reset
+  // (`* { margin:0; padding:0; box-sizing:border-box }`, `html`, `body`, heading,
+  // list and anchor rules). Tailwind's preflight would silently fight it, so it
+  // is disabled. `@tailwind base` stays in globals.css but now emits nothing.
+  corePlugins: {
+    preflight: false,
+  },
   theme: {
     extend: {
-      colors: {
-        navy: "#0F1E3D",
-        gold: "#C9A961",
-        ice: "#E8EEF5",
-      },
+      // Point Tailwind's font utilities at the next/font CSS variables from
+      // app/layout.tsx so utilities and the design sheet resolve to the same
+      // fonts. The design owns color, so no `colors` extension here.
       fontFamily: {
-        serif: ["Georgia", "Cambria", "Times New Roman", "serif"],
-        sans: [
-          "system-ui",
-          "-apple-system",
-          "BlinkMacSystemFont",
-          "Segoe UI",
-          "sans-serif",
-        ],
+        serif: ["var(--font-playfair)", "serif"],
+        sans: ["var(--font-inter)", "sans-serif"],
+        mono: ["var(--font-jetbrains-mono)", "monospace"],
       },
     },
   },
