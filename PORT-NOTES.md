@@ -132,12 +132,16 @@ Confirmed single favicon link in the served head: `<link rel="icon" href="/favic
 
 ---
 
-## 5. Dangling sample PDF (STEP 8)
+## 5. Sample PDF link (STEP 8) — RESOLVED in Pass 2
 
-The Deliverable section's "See the full 12-page sample TCP" link points at
-**`/sample-tcp.pdf`** (source had `CalcSHore-Sample-TCP.pdf`). That file is **not in
-the repo** (being regenerated), so **the link 404s until it lands** in `public/`.
-The link and its copy were left intact; no placeholder PDF was substituted.
+Pass 1 pointed the Deliverable "See the full 12-page sample TCP" link at
+`/sample-tcp.pdf`, which 404'd (the file does not exist and is not coming). **Pass 2
+(branch `landing-v2-copy`) removed the anchor entirely** — the
+`<a href="/sample-tcp.pdf">…See the full 12-page sample TCP</a>` and its icon are gone.
+The now-empty `.deliverable-actions` wrapper `<div>` was retained (renders nothing) to
+avoid restructuring markup. Surrounding deliverable copy, the contents list, the result
+chips, and the cover-page mockup are intact. **No occurrence of `sample-tcp.pdf` remains
+in `app/`** (verified).
 
 ---
 
@@ -165,20 +169,46 @@ the original recovered file is authoritative.) It goes in `public/`, not `app/` 
 
 ---
 
-## 7. Copy that looked wrong but was left alone (verbatim)
+## 7. Copy inconsistencies flagged in Pass 1
 
-Per the rules, these were **not** changed — recorded for the copy pass:
+**Resolved in Pass 2 (branch `landing-v2-copy`, copy + hrefs only):**
+- **"Five-section plan" → "Ten-section plan"** (Pillar 02), matching the 10-section
+  Deliverable ToC. *Residual:* the sentence still lists five example sections
+  ("executive summary, curing, monitoring, contingency, and pre-cooling") after
+  "Ten-section plan:" — not reworded (out of Pass 2 scope; no replacement specified).
+  Flag for a future copy pass.
+- **Time phrasing normalized.** The hero reassurance line was replaced wholesale
+  ("No login, no sales call · Sample output in about five minutes" →
+  "Pilot access is by request · Book a demo and we will set you up"), removing the
+  "about five minutes" instance; the final-CTA chip "Sample output in **5 minutes**" →
+  "Sample output in **five minutes**". The final-CTA headline "under five minutes"
+  already read "five minutes" and was left as-is (a headline, not a flagged instance).
+- **Primary CTA relabeled.** "Try a Sample TCP" → "Open the TCP Generator" in all three
+  places (nav, hero, final-CTA); href stays `https://tcp.calcshore.ai`. This drops the
+  "sample / instant" implication now that the destination is a pilot sign-in wall.
+- **Casing resolved.** "CalcSHore" (capital S+H) is final everywhere; metadata
+  title/description/OG/Twitter/`siteName` all use it (fixed in the correction pass).
+  Domain and email stay lowercase.
 
-- **"Five-section plan" vs. 10-section deliverable.** Pillar 02 says the generated
-  plan is a "Five-section plan," while the Deliverable ToC enumerates 10 sections.
-  Two different framings of the same document. Left verbatim.
-- **Inconsistent time phrasing.** Hero: "Sample output in **about five minutes**";
-  final-CTA reassurance: "Sample output in **5 minutes**." Left verbatim.
+- **Final-CTA reassurance overpromise → RESOLVED (Pass 2 follow-up).** The two chips
+  that implied self-serve signup and that pricing exists were replaced (markup and the
+  checkmark/separator structure unchanged, strings only): "No credit card required" →
+  **"Pilot access is by request"**; "Sample output in five minutes" → **"Built by two
+  concrete PhDs"**. Third chip "Talk to a real engineer" unchanged. The chips now read:
+  "Pilot access is by request / Built by two concrete PhDs / Talk to a real engineer."
+- **Empty `.deliverable-actions` wrapper → RESOLVED (Pass 2 follow-up).** After the
+  sample-PDF anchor was removed (§5), the childless `<div className="deliverable-actions">`
+  was dropped as cleanup (removing an empty container is not a restructure).
+  `landing.css` was not touched to compensate; any margin/padding that div carried
+  simply closes a phantom gap, which is intended.
+
+**Still open:**
 - **Validation numbers** (13/14 within ±1°F, mean 0.3°F, one silica-fume mix +3°F,
   RMSE 0.4°F) are presented as-is. These are claims — see the validation-claim-framing
-  open question in `CLAUDE.md`. Left verbatim.
-- **Casing:** the wordmark renders "Calc**S**Hore" (gold S) throughout, while the
-  site name / metadata use "CalcShore." Left verbatim; see casing open question.
+  open question in `CLAUDE.md`.
+- **Mailto subject em dash.** `submitDemo` builds `"Demo request — "` (em dash) for the
+  Book-a-Demo mailto. Reviewed and accepted as-is (it is a mailto subject, not page
+  prose); the stopgap stays. Noted only for completeness.
 
 ---
 

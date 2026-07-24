@@ -99,7 +99,7 @@ export default function Home() {
         <div className="nav-links">
           <a href="#pillars">How it works</a>
           <a href="#standards">Validation</a>
-          <a href="https://tcp.calcshore.ai" target="_blank" rel="noopener" className="nav-cta">Try a Sample TCP</a>
+          <a href="https://tcp.calcshore.ai" target="_blank" rel="noopener" className="nav-cta">Open the TCP Generator</a>
         </div>
       </nav>
 
@@ -120,14 +120,14 @@ export default function Home() {
 
         <div className="hero-cta-group">
           <a href="https://tcp.calcshore.ai" target="_blank" rel="noopener" className="btn btn-primary">
-            Try a Sample TCP
+            Open the TCP Generator
             <svg className="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
           </a>
           <a href="#" className="btn btn-secondary" onClick={openDemo}>Book a Demo</a>
         </div>
 
         <p className="hero-reassure">
-          No login, no sales call<span className="dot-sep"></span>Sample output in about five minutes
+          Pilot access is by request<span className="dot-sep"></span>Book a demo and we will set you up
         </p>
 
         <div className="trust-strip">
@@ -206,7 +206,7 @@ export default function Home() {
                 Simulation outputs flow straight into a complete, editable thermal control plan. You review and approve each section before it's yours.
               </p>
               <ul className="pillar-features">
-                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Five-section plan: executive summary, curing, monitoring, contingency, and pre-cooling</span></li>
+                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Ten-section plan: executive summary, curing, monitoring, contingency, and pre-cooling</span></li>
                 <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Refine any section's wording with built-in AI editing, so your edits drop straight into the report</span></li>
                 <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Every value editable and reviewable, so you stay the author of record</span></li>
               </ul>
@@ -302,12 +302,6 @@ export default function Home() {
                 <div className="result-chip"><span className="rk">Peak Core</span><span className="rv">135.7°F</span></div>
                 <div className="result-chip"><span className="rk">Limit</span><span className="rv">158°F</span></div>
                 <div className="result-chip pass"><span className="rk">Core Temp</span><span className="rv">PASS</span></div>
-              </div>
-              <div className="deliverable-actions">
-                <a href="/sample-tcp.pdf" target="_blank" rel="noopener" className="doc-link">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                  See the full 12-page sample TCP
-                </a>
               </div>
             </div>
           </div>
@@ -405,14 +399,14 @@ export default function Home() {
           </p>
           <div className="final-cta-actions reveal">
             <a href="https://tcp.calcshore.ai" target="_blank" rel="noopener" className="btn btn-primary">
-              Try a Sample TCP
+              Open the TCP Generator
               <svg className="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
             </a>
             <a href="#" className="btn btn-secondary" onClick={openDemo}>Book a Demo</a>
           </div>
           <div className="final-cta-reassurance reveal">
-            <div className="reassurance-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>No credit card required</div>
-            <div className="reassurance-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Sample output in 5 minutes</div>
+            <div className="reassurance-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Pilot access is by request</div>
+            <div className="reassurance-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Built by two concrete PhDs</div>
             <div className="reassurance-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>Talk to a real engineer</div>
           </div>
         </div>
