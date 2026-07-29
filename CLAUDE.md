@@ -53,7 +53,7 @@ inconsistent but was deliberately left alone.
 
 1. **CTA path.** Two competing calls to action: self-serve "Try a Sample TCP"
    (→ `https://tcp.calcshore.ai`, no login) vs. "Book a Demo" (opens a modal that
-   builds a `mailto:hello@calcshore.ai`). Which is the primary conversion path, and do
+   builds a `mailto:contact@calcshore.ai`). Which is the primary conversion path, and do
    both stay?
 2. **Sample PDF.** The Deliverable link points at `/sample-tcp.pdf`, which 404s until
    the regenerated file is dropped into `public/`. Who regenerates it, and is
@@ -61,14 +61,14 @@ inconsistent but was deliberately left alone.
 3. **Validation-claim framing.** How to present the benchmark numbers (13/14 mixes
    within ±1°F, mean diff 0.3°F, one silica-fume mix ~3°F warmer, RMSE 0.4°F,
    "Validated vs. ConcreteWorks") — wording/substantiation for a reviewer audience.
-4. **Where demo/access requests go.** Currently a `mailto:hello@calcshore.ai`
+4. **Where demo/access requests go.** Currently a `mailto:contact@calcshore.ai`
    stopgap. Real destination (form + backend? CRM? scheduling link?) TBD.
 5. **Mix Design placement.** Metadata is now TCP-only (title/description/OG/Twitter
    describe Thermal Control Plans; the old Mix Design reference was removed). This page
    has no Mix Design section. Confirm Mix Design is intentionally off this page.
 6. **Casing: "CalcSHore" vs "CalcShore".** The body wordmark and all of `app/layout.tsx`
    (title + OG/Twitter title + OG `siteName`) now use "Calc**S**Hore" (capital S+H).
-   The domain and email stay lowercase (`calcshore.ai`, `hello@calcshore.ai`). Interim
+   The domain and email stay lowercase (`calcshore.ai`, `contact@calcshore.ai`). Interim
    choice keeps the deploy internally consistent — pick one canonical brand form.
 7. **Naming customers/advisors (e.g. Dolese, Bret).** The design sheet carries CSS for
    testimonial / advisor / partner blocks, but no such content shipped in this pass.

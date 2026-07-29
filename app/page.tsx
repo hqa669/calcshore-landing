@@ -73,7 +73,7 @@ export default function Home() {
       "What I'd like to see:\n" +
       (msg || "(not specified)");
     window.location.href =
-      "mailto:hello@calcshore.ai?subject=" +
+      "mailto:contact@calcshore.ai?subject=" +
       encodeURIComponent(subject) +
       "&body=" +
       encodeURIComponent(body);
@@ -430,7 +430,7 @@ export default function Home() {
               <div className="footer-tagline">Stamp · Seal · Submit</div>
             </div>
             <div className="footer-contact">
-              <a href="mailto:hello@calcshore.ai">hello@calcshore.ai</a>
+              <a href="mailto:contact@calcshore.ai">contact@calcshore.ai</a>
               <span className="footer-contact-meta">Mountain View, CA</span>
             </div>
           </div>
@@ -478,7 +478,7 @@ export default function Home() {
                 Send request
                 <svg className="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
               </button>
-              <p className="demo-fallback">Prefer email? Write us at <a href="mailto:hello@calcshore.ai">hello@calcshore.ai</a></p>
+              <p className="demo-fallback">Prefer email? Write us at <a href="mailto:contact@calcshore.ai">contact@calcshore.ai</a></p>
             </form>
           </div>
         </div>
