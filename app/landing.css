@@ -2181,3 +2181,99 @@
     footer { padding: 36px 24px 18px; }
     .footer-bottom { flex-direction: column; align-items: flex-start; }
   }
+
+  /* ==========================================================================
+     ADDED AFTER THE DESIGN PORT — demo request submission states
+     --------------------------------------------------------------------------
+     Everything above this line is verbatim from the design source (see
+     PORT-NOTES.md). Nothing above is modified. This block only ADDS rules for
+     UI states the design sheet never had: in-flight submit, server-confirmed
+     success, server-reported error, and the bot honeypot.
+     Keep new demo-related rules inside this block.
+     ========================================================================== */
+
+  /* Honeypot. Positioned off-screen rather than display:none, because some
+     bots skip display:none fields and would sail past the trap. */
+  .demo-hp {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+
+  /* In-flight submit. */
+  .demo-submit[disabled] {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .demo-spinner {
+    width: 13px;
+    height: 13px;
+    border: 2px solid rgba(244, 244, 241, 0.35);
+    border-top-color: var(--paper);
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    animation: demo-spin 0.7s linear infinite;
+  }
+
+  @keyframes demo-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .demo-spinner { animation-duration: 2.4s; }
+  }
+
+  /* Server-reported failure. The modal stays open and keeps the typed values. */
+  .demo-error {
+    font-size: 13px;
+    line-height: 1.5;
+    color: #8C2F2F;
+    background: rgba(140, 47, 47, 0.07);
+    border: 1px solid rgba(140, 47, 47, 0.28);
+    border-radius: 6px;
+    padding: 11px 13px;
+  }
+
+  .demo-error-fallback { display: block; margin-top: 4px; color: var(--ink-soft); }
+
+  .demo-error-fallback a { color: var(--navy); font-weight: 600; text-decoration: none; }
+  .demo-error-fallback a:hover { color: var(--gold); }
+
+  /* Confirmed success. Only rendered once the server has acknowledged the
+     write — never on an unverified outcome. */
+  .demo-sent { text-align: center; }
+
+  .demo-sent-mark {
+    width: 44px;
+    height: 44px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--navy);
+    background: rgba(201, 169, 97, 0.18);
+    border: 1px solid var(--gold);
+  }
+
+  .demo-sent .demo-sub { margin-bottom: 14px; }
+
+  /* The address is called out so a typo is visible while the visitor is
+     still looking at the screen. */
+  .demo-sent-email {
+    font-family: var(--font-jetbrains-mono), monospace;
+    font-size: 13px;
+    color: var(--navy);
+    background: rgba(26, 40, 69, 0.06);
+    border-radius: 4px;
+    padding: 1px 5px;
+    word-break: break-all;
+  }
+
+  .demo-sent .demo-submit { margin-top: 20px; }

@@ -4,14 +4,23 @@ import { useEffect, useRef, useState } from "react";
 import { SCATTER_SVG, ENVELOPE_SVG } from "./charts";
 import "./landing.css";
 
+type DemoStatus = "idle" | "submitting" | "sent" | "error";
+
 export default function Home() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [demoOpen, setDemoOpen] = useState(false);
+
+  // One status value, not three booleans — three booleans can contradict
+  // each other ("submitting AND sent"), a single value cannot.
+  const [demoStatus, setDemoStatus] = useState<DemoStatus>("idle");
+  const [demoError, setDemoError] = useState("");
+  const [sentToEmail, setSentToEmail] = useState("");
 
   const nameRef = useRef<HTMLInputElement>(null);
   const companyRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const msgRef = useRef<HTMLTextAreaElement>(null);
+  const websiteRef = useRef<HTMLInputElement>(null);
 
   // Scroll reveal. Ported from the design's DCLogic.componentDidMount.
   // .reveal elements are VISIBLE BY DEFAULT; only below-fold ones get .pending
@@ -47,37 +56,73 @@ export default function Home() {
     if (e) e.preventDefault();
     setDemoOpen(true);
   };
+  // Closing always resets to idle, so reopening shows a fresh form rather
+  // than a stale confirmation or a stale error.
   const closeDemo = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
     setDemoOpen(false);
+    setDemoStatus("idle");
+    setDemoError("");
+    setSentToEmail("");
   };
   const stop = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
-  const submitDemo = () => {
+
+  // Submit to the server and branch on what the server actually says.
+  // The modal NEVER closes on an unconfirmed outcome — a failed submission
+  // must not look like a successful one.
+  const submitDemo = async () => {
+    if (demoStatus === "submitting") return; // guards double-submit
+
     const name = nameRef.current?.value.trim() ?? "";
     const company = companyRef.current?.value.trim() ?? "";
     const email = emailRef.current?.value.trim() ?? "";
-    const msg = msgRef.current?.value.trim() ?? "";
-    const subject = "Demo request — " + (company || name || "CalcSHore");
-    const body =
-      "Name: " +
-      name +
-      "\n" +
-      "Company: " +
-      company +
-      "\n" +
-      "Email: " +
-      email +
-      "\n\n" +
-      "What I'd like to see:\n" +
-      (msg || "(not specified)");
-    window.location.href =
-      "mailto:contact@calcshore.ai?subject=" +
-      encodeURIComponent(subject) +
-      "&body=" +
-      encodeURIComponent(body);
-    setDemoOpen(false);
+    const message = msgRef.current?.value.trim() ?? "";
+    const website = websiteRef.current?.value ?? "";
+
+    // Single-route page, so UTMs live on the current URL at submit time.
+    const params = new URLSearchParams(window.location.search);
+
+    setDemoStatus("submitting");
+    setDemoError("");
+
+    try {
+      const res = await fetch("/api/demo-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          company,
+          email,
+          message,
+          website,
+          utm_source: params.get("utm_source") ?? "",
+          utm_medium: params.get("utm_medium") ?? "",
+          utm_campaign: params.get("utm_campaign") ?? "",
+        }),
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (res.ok && data?.ok) {
+        setSentToEmail(typeof data.email === "string" && data.email ? data.email : email);
+        setDemoStatus("sent");
+        return;
+      }
+
+      setDemoError(
+        typeof data?.error === "string" && data.error
+          ? data.error
+          : "We couldn't save your request. Please try again."
+      );
+      setDemoStatus("error");
+    } catch {
+      setDemoError(
+        "We couldn't reach the server. Check your connection and try again."
+      );
+      setDemoStatus("error");
+    }
   };
 
   return (
@@ -448,38 +493,101 @@ export default function Home() {
             <button className="demo-close" onClick={closeDemo} aria-label="Close">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
-            <div className="demo-eyebrow">Book a Demo</div>
-            <h3 className="demo-title">See a stamp-ready TCP.</h3>
-            <p className="demo-sub">Tell us a little about your work and we'll reach out to set up a 20-minute walkthrough.</p>
-            <form
-              className="demo-form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                submitDemo();
-              }}
-            >
-              <label className="demo-field">
-                <span>Name</span>
-                <input ref={nameRef} id="demo-name" type="text" required placeholder="Jane Doe" />
-              </label>
-              <label className="demo-field">
-                <span>Company</span>
-                <input ref={companyRef} id="demo-company" type="text" placeholder="Acme Engineering" />
-              </label>
-              <label className="demo-field">
-                <span>Work email</span>
-                <input ref={emailRef} id="demo-email" type="email" required placeholder="jane@acme.com" />
-              </label>
-              <label className="demo-field">
-                <span>What would you like to see? <em>(optional)</em></span>
-                <textarea ref={msgRef} id="demo-msg" rows={3} placeholder="We pour mass concrete bridge footings and need TCPs faster…"></textarea>
-              </label>
-              <button type="submit" className="btn btn-primary demo-submit">
-                Send request
-                <svg className="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </button>
-              <p className="demo-fallback">Prefer email? Write us at <a href="mailto:contact@calcshore.ai">contact@calcshore.ai</a></p>
-            </form>
+            {demoStatus === "sent" ? (
+              <div className="demo-sent">
+                <div className="demo-sent-mark" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div className="demo-eyebrow">Request received</div>
+                <h3 className="demo-title">We've got it.</h3>
+                <p className="demo-sub">
+                  We've recorded your request and we'll follow up at{" "}
+                  <span className="demo-sent-email">{sentToEmail}</span>.
+                </p>
+                <p className="demo-fallback">
+                  If that address isn't right, write to{" "}
+                  <a href="mailto:contact@calcshore.ai">contact@calcshore.ai</a>
+                </p>
+                <button type="button" className="btn btn-primary demo-submit" onClick={() => closeDemo()}>
+                  Close
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="demo-eyebrow">Book a Demo</div>
+                <h3 className="demo-title">See a stamp-ready TCP.</h3>
+                <p className="demo-sub">Tell us a little about your work and we'll reach out to set up a 20-minute walkthrough.</p>
+                <form
+                  className="demo-form"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    submitDemo();
+                  }}
+                >
+                  <label className="demo-field">
+                    <span>Name</span>
+                    <input ref={nameRef} id="demo-name" type="text" required placeholder="Jane Doe" />
+                  </label>
+                  <label className="demo-field">
+                    <span>Company</span>
+                    <input ref={companyRef} id="demo-company" type="text" placeholder="Acme Engineering" />
+                  </label>
+                  <label className="demo-field">
+                    <span>Work email</span>
+                    <input ref={emailRef} id="demo-email" type="email" required placeholder="jane@acme.com" />
+                  </label>
+                  <label className="demo-field">
+                    <span>What would you like to see? <em>(optional)</em></span>
+                    <textarea ref={msgRef} id="demo-msg" rows={3} placeholder="We pour mass concrete bridge footings and need TCPs faster…"></textarea>
+                  </label>
+
+                  {/* Honeypot. Off-screen rather than display:none — some bots skip
+                      display:none fields. Hidden from screen readers and from tab
+                      order, and deliberately NOT required. */}
+                  <div className="demo-hp" aria-hidden="true">
+                    <label htmlFor="demo-website">Website</label>
+                    <input
+                      ref={websiteRef}
+                      id="demo-website"
+                      name="website"
+                      type="text"
+                      tabIndex={-1}
+                      autoComplete="off"
+                    />
+                  </div>
+
+                  {demoStatus === "error" && (
+                    <p className="demo-error" role="alert">
+                      {demoError}{" "}
+                      <span className="demo-error-fallback">
+                        You can also email us directly at{" "}
+                        <a href="mailto:contact@calcshore.ai">contact@calcshore.ai</a>.
+                      </span>
+                    </p>
+                  )}
+
+                  <button
+                    type="submit"
+                    className="btn btn-primary demo-submit"
+                    disabled={demoStatus === "submitting"}
+                    aria-busy={demoStatus === "submitting"}
+                  >
+                    {demoStatus === "submitting" ? (
+                      <>
+                        <span className="demo-spinner" aria-hidden="true"></span>
+                        Sending…
+                      </>
+                    ) : (
+                      <>
+                        {demoStatus === "error" ? "Try again" : "Send request"}
+                        <svg className="arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                      </>
+                    )}
+                  </button>
+                  <p className="demo-fallback">Prefer email? Write us at <a href="mailto:contact@calcshore.ai">contact@calcshore.ai</a></p>
+                </form>
+              </>
+            )}
           </div>
         </div>
       )}
