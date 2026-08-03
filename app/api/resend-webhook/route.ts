@@ -129,12 +129,45 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 
-  // Resend's shorter names for the three standard webhook headers.
+  // Resend runs on Svix, which sends the three standard webhook headers under
+  // their `svix-*` names and only white-labels them to the `webhook-*` prefix on
+  // Professional and Enterprise accounts. So read `svix-*` first and fall back to
+  // `webhook-*`, and the route keeps working if this account is ever white-labeled.
+  // The { id, timestamp, signature } shape handed to verify() is unchanged — only
+  // the headers those values are read from.
+  const headerNames = {
+    id: ["svix-id", "webhook-id"],
+    timestamp: ["svix-timestamp", "webhook-timestamp"],
+    signature: ["svix-signature", "webhook-signature"],
+  } as const;
+
+  function header(names: readonly string[]): string {
+    for (const name of names) {
+      const value = request.headers.get(name);
+      if (value) return value;
+    }
+    return "";
+  }
+
   const headers = {
-    id: request.headers.get("webhook-id") ?? "",
-    timestamp: request.headers.get("webhook-timestamp") ?? "",
-    signature: request.headers.get("webhook-signature") ?? "",
+    id: header(headerNames.id),
+    timestamp: header(headerNames.timestamp),
+    signature: header(headerNames.signature),
   };
+
+  // A missing header and a bad signature both make verify() throw, which made the
+  // two indistinguishable in the logs and cost a production round-trip to tell
+  // apart. Name the absent ones explicitly before bailing out.
+  const missing = (Object.keys(headerNames) as (keyof typeof headerNames)[])
+    .filter((key) => !headers[key])
+    .map((key) => headerNames[key].join(" / "));
+
+  if (missing.length > 0) {
+    console.error(
+      `[resend-webhook] Signature headers absent: ${missing.join(", ")}; cannot verify.`
+    );
+    return NextResponse.json({ ok: false }, { status: 400 });
+  }
 
   // verify() is SYNCHRONOUS and signals failure by THROWING
   // (WebhookVerificationError) — it never returns false. It throws on missing
@@ -149,7 +182,9 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     console.error(
-      `[resend-webhook] Signature verification failed (webhook-id ${headers.id || "(none)"}):`,
+      // "message id", not a header name — the value may have come from either
+      // `svix-id` or `webhook-id`, and the log should not assert which.
+      `[resend-webhook] Signature verification failed (message id ${headers.id || "(none)"}):`,
       err
     );
     return NextResponse.json({ ok: false }, { status: 400 });
