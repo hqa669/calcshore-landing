@@ -1,15 +1,19 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { Resend } from "resend";
 
-// Demo request capture. Writes a row to Supabase `demo_requests`, then notifies
-// CalcShore by email. The row is the record of truth: the route returns success
-// as soon as the insert is confirmed, so the UI can never show a false "sent".
-// The notification is strictly best-effort, runs in the background via
-// waitUntil, and cannot fail or delay the request — see `notifyCalcShore`
-// below. No confirmation email is sent to the requester yet; that is a
-// separate, later stage.
+// Demo request capture. Writes a row to Supabase `demo_requests`, then sends two
+// emails: a notification to CalcShore and a confirmation to the requester. The
+// row is the record of truth: the route returns success as soon as the insert is
+// confirmed, so the UI can never show a false "sent". BOTH sends are strictly
+// best-effort, run in the background via waitUntil, and cannot fail or delay the
+// request — see `notifyCalcShore` and `confirmRequester` below.
+//
+// Both sends are tagged so Resend's delivery webhook can be joined back to the
+// row (see app/api/resend-webhook/route.ts). The `email_kind` tag is what keeps a
+// bounce on the internal notification from ever being mistaken for the prospect
+// being unreachable.
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +21,13 @@ export const dynamic = "force-dynamic";
 const MAX_SHORT = 200;
 const MAX_MESSAGE = 5000;
 
-const NOTIFY_FROM = "CalcShore <noreply@calcshore.ai>";
+// Shared envelope sender for both sends. Must stay on calcshore.ai so SPF/DKIM
+// align; the requester's own address never goes in From.
+const MAIL_FROM = "CalcShore <noreply@calcshore.ai>";
+
+// Reply-To on the confirmation. Deliberately NOT noreply@: a reply to a demo
+// confirmation is exactly the message worth receiving.
+const CONFIRM_REPLY_TO = "contact@calcshore.ai";
 
 // Hardcoded on purpose — do NOT replace this with a single group address.
 // `contact@calcshore.ai` is an ALIAS on Xiaodan's mailbox, and her Gmail
@@ -72,6 +82,48 @@ function line(label: string, value: string | null): string {
 }
 
 /**
+ * Resend tag values accept ASCII letters, digits, underscore and dash only, max
+ * 256 chars. A bare UUID passes; anything with a dot or an "@" does not — which
+ * is why we tag the row id and never the email address.
+ */
+const TAG_VALUE = /^[A-Za-z0-9_-]{1,256}$/;
+
+type EmailKind = "notification" | "confirmation";
+
+/**
+ * Tags ride along with a send and come back on the delivery webhook under
+ * `data.tags` — as a KEYED OBJECT there, not the array shape sent here.
+ *
+ * `email_kind` is load-bearing, not decoration. The notification goes to
+ * contact@calcshore.ai and a personal Gmail address; a bounce on either of those
+ * says nothing whatsoever about the prospect, and must NEVER mark them
+ * unreachable. The webhook only writes the row's delivery columns when this tag
+ * reads "confirmation".
+ *
+ * `demo_request_id` is omitted rather than sent malformed if the id somehow is
+ * not tag-safe (the caller substitutes a placeholder when the insert returns no
+ * id). An invalid tag would make Resend reject the entire send, trading a missing
+ * join key for a missing email. Dropping it is LOUD, not silent: a lost tag
+ * degrades the webhook join, and that must leave a trace naming the row.
+ */
+function tagsFor(rowId: string, kind: EmailKind): { name: string; value: string }[] {
+  const tags: { name: string; value: string }[] = [];
+  if (TAG_VALUE.test(rowId)) {
+    tags.push({ name: "demo_request_id", value: rowId });
+  } else {
+    console.error(
+      `[demo-request] Row id ${JSON.stringify(rowId)} is not a usable Resend tag value ` +
+        "(ASCII letters, digits, underscore and dash only, 1-256 chars); sending the " +
+        `${kind} email WITHOUT a demo_request_id tag. email_kind is still set, so a ` +
+        "notification bounce still cannot touch the row; a confirmation event will have " +
+        "to join on confirmation_email_id instead."
+    );
+  }
+  tags.push({ name: "email_kind", value: kind });
+  return tags;
+}
+
+/**
  * Notify CalcShore that a lead came in. Best-effort by design.
  *
  * This function NEVER throws and NEVER returns a failure the caller acts on:
@@ -120,11 +172,15 @@ async function notifyCalcShore(n: Notification): Promise<void> {
     ].join("\n");
 
     const { data, error } = await new Resend(apiKey).emails.send({
-      from: NOTIFY_FROM,
+      from: MAIL_FROM,
       to: NOTIFY_TO,
       replyTo: n.email,
       subject,
       text,
+      // Tagged "notification" so the webhook can tell this send apart from the
+      // requester's confirmation and skip it entirely. A bounce from contact@ or
+      // the Gmail backstop must not touch the prospect's delivery columns.
+      tags: tagsFor(n.id, "notification"),
     });
 
     if (error) {
@@ -141,6 +197,131 @@ async function notifyCalcShore(n: Notification): Promise<void> {
   } catch (err) {
     console.error(
       `[demo-request] Notification threw for row ${n.id} (${n.email}):`,
+      err
+    );
+  }
+}
+
+type Confirmation = {
+  id: string;
+  name: string;
+  company: string | null;
+  email: string;
+  message: string | null;
+};
+
+/**
+ * Confirm to the requester that we got it. Best-effort by design, exactly like
+ * `notifyCalcShore`: this function NEVER throws and NEVER returns a failure the
+ * caller acts on. The row is already committed by the time it runs, so a mail
+ * problem must not turn a captured lead into an error screen for the visitor.
+ * Every failure path logs server-side with the row id.
+ *
+ * Deliberately dull. calcshore.ai has no sending reputation yet and early test
+ * mail landed in spam, so: plain text only, no HTML alternative, no links, no
+ * images, no tracking, no marketing voice. Nothing here should look like a
+ * campaign, because it is not one.
+ *
+ * The submission is echoed back so a typo is VISIBLE to the person who made it.
+ * Validation on this endpoint is deliberately loose — `adas@sda` is accepted and
+ * stored — so this echo, plus the bounce webhook, is what actually catches a bad
+ * address. No time commitment is made: "shortly", never a number of hours or
+ * business days.
+ *
+ * On success the Resend id is written back to `confirmation_email_id` as a
+ * secondary join path for delivery events that arrive without tags. That write is
+ * non-critical and isolated: if it fails it logs and changes nothing else.
+ */
+async function confirmRequester(
+  supabase: SupabaseClient,
+  c: Confirmation
+): Promise<void> {
+  try {
+    // Read inside the handler, never at module scope, so a missing key can
+    // never break the build.
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      console.error(
+        `[demo-request] RESEND_API_KEY missing; no confirmation sent for row ${c.id} (${c.email}). Row is saved.`
+      );
+      return;
+    }
+
+    const text = [
+      `Hi ${c.name},`,
+      "",
+      "We received your demo request for CalcShore. Someone will be in touch",
+      "shortly.",
+      "",
+      "Here is what you sent us:",
+      "",
+      line("Name", c.name),
+      line("Company", c.company),
+      line("Email", c.email),
+      "",
+      "Message:",
+      c.message ?? "—",
+      "",
+      "If any of that is wrong, reply to this email and we will correct it.",
+      "",
+      "CalcShore",
+    ].join("\n");
+
+    const { data, error } = await new Resend(apiKey).emails.send({
+      from: MAIL_FROM,
+      to: c.email,
+      replyTo: CONFIRM_REPLY_TO,
+      subject: "We received your CalcShore demo request",
+      text,
+      // Tagged "confirmation": this is the ONLY send whose delivery events are
+      // allowed to write the row's delivery columns.
+      tags: tagsFor(c.id, "confirmation"),
+    });
+
+    if (error) {
+      console.error(
+        `[demo-request] Confirmation send failed for row ${c.id} (${c.email}):`,
+        error
+      );
+      return;
+    }
+
+    const emailId = data?.id;
+    if (!emailId) {
+      console.error(
+        `[demo-request] Confirmation sent for row ${c.id} but Resend returned no message id; delivery events will have to join on the tag alone.`
+      );
+      return;
+    }
+
+    console.log(
+      `[demo-request] Confirmation sent for row ${c.id}; Resend message id ${emailId}`
+    );
+
+    // Non-critical. The tag on the send is the primary join key, so failing to
+    // record this id costs us a fallback, not the feedback loop. Isolated in its
+    // own try/catch so it cannot escape and cannot affect anything above.
+    try {
+      const { error: updateError } = await supabase
+        .from("demo_requests")
+        .update({ confirmation_email_id: emailId })
+        .eq("id", c.id);
+
+      if (updateError) {
+        console.error(
+          `[demo-request] Could not record confirmation_email_id ${emailId} on row ${c.id}:`,
+          updateError
+        );
+      }
+    } catch (updateErr) {
+      console.error(
+        `[demo-request] Recording confirmation_email_id ${emailId} on row ${c.id} threw:`,
+        updateErr
+      );
+    }
+  } catch (err) {
+    console.error(
+      `[demo-request] Confirmation threw for row ${c.id} (${c.email}):`,
       err
     );
   }
@@ -237,28 +418,46 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: GENERIC_ERROR }, { status: 500 });
   }
 
+  const rowId = String(data?.id ?? "(unknown)");
+
   // Only after the row is committed, and deliberately NOT awaited: the visitor
-  // should not wait on a Resend round-trip for a row that is already saved.
-  // waitUntil keeps the serverless function alive until the send settles, so
-  // backgrounding it does not mean losing it.
+  // should not wait on two Resend round-trips for a row that is already saved.
+  // waitUntil keeps the serverless function alive until they settle, so
+  // backgrounding them does not mean losing them.
   //
-  // The promise handed to waitUntil is already running and already
-  // self-contained — notifyCalcShore swallows every failure internally, so it
-  // can neither reject (no unhandled rejection) nor affect the response below.
-  // Off Vercel (local `next dev`) waitUntil is a no-op, but the send still
-  // completes: the promise was started by the call, not by waitUntil.
+  // Both promises handed to waitUntil are already running and already
+  // self-contained — notifyCalcShore and confirmRequester each swallow every
+  // failure internally, so neither can reject (no unhandled rejection) nor affect
+  // the response below. Off Vercel (local `next dev`) waitUntil is a no-op, but
+  // the sends still complete: the promises were started by the calls, not by
+  // waitUntil.
+  //
+  // Both calls are made BEFORE anything is awaited, so the two sends are in
+  // flight concurrently and one failing cannot prevent the other from being
+  // attempted. allSettled rather than all: neither promise can reject today, and
+  // allSettled means that stays true even if a future edit to either helper
+  // breaks that guarantee.
   waitUntil(
-    notifyCalcShore({
-      id: String(data?.id ?? "(unknown)"),
-      name,
-      company: orNull(company),
-      email,
-      message: orNull(message),
-      referrer: orNull(referrer),
-      utmSource: orNull(utmSource),
-      utmMedium: orNull(utmMedium),
-      utmCampaign: orNull(utmCampaign),
-    })
+    Promise.allSettled([
+      notifyCalcShore({
+        id: rowId,
+        name,
+        company: orNull(company),
+        email,
+        message: orNull(message),
+        referrer: orNull(referrer),
+        utmSource: orNull(utmSource),
+        utmMedium: orNull(utmMedium),
+        utmCampaign: orNull(utmCampaign),
+      }),
+      confirmRequester(supabase, {
+        id: rowId,
+        name,
+        company: orNull(company),
+        email,
+        message: orNull(message),
+      }),
+    ])
   );
 
   return NextResponse.json({ ok: true, email }, { status: 200 });
